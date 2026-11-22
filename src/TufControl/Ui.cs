@@ -65,25 +65,10 @@ internal static class Ui
         Padding = new Thickness(10, 8), MinHeight = 35
     };
 
-    public static Button GButton(string icon, string label, double height = 64)
+    public static Button GButton(string svgData, string label, double height = 64, double iconSize = 18)
     {
-        var sp = new StackPanel
-        {
-            Spacing = 4,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        if (!string.IsNullOrEmpty(icon))
-        {
-            sp.Children.Add(new TextBlock
-            {
-                Text = icon,
-                FontSize = 16,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                TextAlignment = TextAlignment.Center
-            });
-        }
-        sp.Children.Add(new TextBlock
+        var icon = Icons.Create(svgData, iconSize, Text);
+        var text = new TextBlock
         {
             Text = label,
             FontSize = 11,
@@ -91,7 +76,15 @@ internal static class Ui
             Foreground = Text,
             HorizontalAlignment = HorizontalAlignment.Center,
             TextAlignment = TextAlignment.Center
-        });
+        };
+
+        var sp = new StackPanel
+        {
+            Spacing = 4,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            Children = { icon, text }
+        };
 
         return new Button
         {
@@ -122,14 +115,19 @@ internal static class Ui
             b.BorderBrush = GButtonBorder;
             b.BorderThickness = new Thickness(1.5);
         }
+
+        if (b.Content is StackPanel sp && sp.Children.Count > 0 && sp.Children[0] is PathIcon icon)
+        {
+            icon.Foreground = selected ? (isTurbo ? TurboBorder : Accent) : Text;
+        }
     }
 
-    public static Grid SectionHeader(string icon, string title, Control rightControl)
+    public static Grid SectionHeader(string svgIcon, string title, Control rightControl)
     {
         var grid = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto"), Margin = new Thickness(0, 0, 0, 6) };
         var left = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, VerticalAlignment = VerticalAlignment.Center };
-        if (!string.IsNullOrEmpty(icon))
-            left.Children.Add(new TextBlock { Text = icon, FontSize = 13, Foreground = Text, VerticalAlignment = VerticalAlignment.Center });
+        if (!string.IsNullOrEmpty(svgIcon))
+            left.Children.Add(Icons.Create(svgIcon, 13, Muted));
         left.Children.Add(new TextBlock { Text = title, FontSize = 12.5, FontWeight = FontWeight.SemiBold, Foreground = Text, VerticalAlignment = VerticalAlignment.Center });
         grid.Children.Add(left);
         Grid.SetColumn(rightControl, 1);

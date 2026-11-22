@@ -92,27 +92,27 @@ public sealed class MainWindow : Window
 
         // 1. MODO DE RENDIMIENTO (CPU & FANS)
         var secModo = Ui.V(6);
-        secModo.Children.Add(Ui.SectionHeader("⏱", "", _cpuMetrics));
+        secModo.Children.Add(Ui.SectionHeader(Icons.Speedometer, "", _cpuMetrics));
         // Replace header title with dynamic _titleModo
         ((StackPanel)((Grid)secModo.Children[0]).Children[0]).Children[1] = _titleModo;
 
         var gridModo = new Grid { ColumnDefinitions = new ColumnDefinitions("*,*,*,*"), ColumnSpacing = 6 };
-        var btnQuiet = Ui.GButton("🚲", "Silencio");
+        var btnQuiet = Ui.GButton(Icons.Bicycle, "Silencio");
         btnQuiet.Click += async (_, _) => await SetProfile("LowPower");
         _profileButtons["LowPower"] = btnQuiet;
         Grid.SetColumn(btnQuiet, 0); gridModo.Children.Add(btnQuiet);
 
-        var btnBal = Ui.GButton("🚗", "Equilibrado");
+        var btnBal = Ui.GButton(Icons.Car, "Equilibrado");
         btnBal.Click += async (_, _) => await SetProfile("Balanced");
         _profileButtons["Balanced"] = btnBal;
         Grid.SetColumn(btnBal, 1); gridModo.Children.Add(btnBal);
 
-        var btnTurbo = Ui.GButton("🚀", "Turbo");
+        var btnTurbo = Ui.GButton(Icons.Rocket, "Turbo");
         btnTurbo.Click += async (_, _) => await SetProfile("Performance");
         _profileButtons["Performance"] = btnTurbo;
         Grid.SetColumn(btnTurbo, 2); gridModo.Children.Add(btnTurbo);
 
-        var btnAdv = Ui.GButton("⚙", "Ventiladores\n+ Energía");
+        var btnAdv = Ui.GButton(Icons.Fan, "Ventiladores\n+ Energía");
         btnAdv.Click += (_, _) => OpenAdvanced();
         Grid.SetColumn(btnAdv, 3); gridModo.Children.Add(btnAdv);
 
@@ -121,19 +121,19 @@ public sealed class MainWindow : Window
 
         // 2. MODO DE GPU & BOOST
         var secGpu = Ui.V(6);
-        secGpu.Children.Add(Ui.SectionHeader("🎮", "", _gpuMetrics));
+        secGpu.Children.Add(Ui.SectionHeader(Icons.Rocket, "", _gpuMetrics));
         ((StackPanel)((Grid)secGpu.Children[0]).Children[0]).Children[1] = _titleGpu;
 
         var gridGpu = new Grid { ColumnDefinitions = new ColumnDefinitions("*,*,*"), ColumnSpacing = 6 };
-        var btnEco = Ui.GButton("🌱", "Fresco / Eco");
+        var btnEco = Ui.GButton(Icons.Leaf, "Fresco / Eco");
         btnEco.Click += async (_, _) => await ApplyPreset("Fresco");
         Grid.SetColumn(btnEco, 0); gridGpu.Children.Add(btnEco);
 
-        _btnBoostOff = Ui.GButton("🔒", "Boost Off");
+        _btnBoostOff = Ui.GButton(Icons.Lock, "Boost Off");
         _btnBoostOff.Click += async (_, _) => await ApplyChange(() => Hardware.SetTurbo(false), "Intel Turbo Boost desactivado.");
         Grid.SetColumn(_btnBoostOff, 1); gridGpu.Children.Add(_btnBoostOff);
 
-        _btnBoostOn = Ui.GButton("⚡", "Boost On");
+        _btnBoostOn = Ui.GButton(Icons.Lightning, "Boost On");
         _btnBoostOn.Click += async (_, _) => await ApplyChange(() => Hardware.SetTurbo(true), "Intel Turbo Boost activado.");
         Grid.SetColumn(_btnBoostOn, 2); gridGpu.Children.Add(_btnBoostOn);
 
@@ -142,19 +142,19 @@ public sealed class MainWindow : Window
 
         // 3. PANTALLA (TASA DE REFRESCO)
         var secScreen = Ui.V(6);
-        secScreen.Children.Add(Ui.SectionHeader("💻", "", _screenMetrics));
+        secScreen.Children.Add(Ui.SectionHeader(Icons.Display, "", _screenMetrics));
         ((StackPanel)((Grid)secScreen.Children[0]).Children[0]).Children[1] = _titleScreen;
 
         var gridScreen = new Grid { ColumnDefinitions = new ColumnDefinitions("*,*,*"), ColumnSpacing = 6 };
-        _btnScreenAuto = Ui.GButton("🔄", "Automático", 44);
+        _btnScreenAuto = Ui.GButton(Icons.Sync, "Automático", 44, 15);
         _btnScreenAuto.Click += (_, _) => ToggleAutoRefresh();
         Grid.SetColumn(_btnScreenAuto, 0); gridScreen.Children.Add(_btnScreenAuto);
 
-        _btnScreen60 = Ui.GButton("🔋", "60Hz", 44);
+        _btnScreen60 = Ui.GButton(Icons.Display, "60Hz", 44, 15);
         _btnScreen60.Click += async (_, _) => await ApplyChange(() => Hardware.SetScreenRefreshRate(60), "Pantalla configurada a 60 Hz");
         Grid.SetColumn(_btnScreen60, 1); gridScreen.Children.Add(_btnScreen60);
 
-        _btnScreen144 = Ui.GButton("⚡", "144Hz", 44);
+        _btnScreen144 = Ui.GButton(Icons.Lightning, "144Hz", 44, 15);
         _btnScreen144.Click += async (_, _) => await ApplyChange(() => Hardware.SetScreenRefreshRate(144), "Pantalla configurada a 144 Hz");
         Grid.SetColumn(_btnScreen144, 2); gridScreen.Children.Add(_btnScreen144);
 
@@ -163,19 +163,19 @@ public sealed class MainWindow : Window
 
         // 4. BATERÍA (LÍMITE DE CARGA)
         var secBattery = Ui.V(6);
-        secBattery.Children.Add(Ui.SectionHeader("🔋", "", _batteryMetrics));
+        secBattery.Children.Add(Ui.SectionHeader(Icons.Shield, "", _batteryMetrics));
         ((StackPanel)((Grid)secBattery.Children[0]).Children[0]).Children[1] = _titleBattery;
 
         var gridBat = new Grid { ColumnDefinitions = new ColumnDefinitions("*,*,*"), ColumnSpacing = 6 };
-        _btnBat60 = Ui.GButton("🛡", "60% Cuidado", 44);
+        _btnBat60 = Ui.GButton(Icons.Shield, "60% Cuidado", 44, 15);
         _btnBat60.Click += async (_, _) => await QuickSetBatteryLimit(60);
         Grid.SetColumn(_btnBat60, 0); gridBat.Children.Add(_btnBat60);
 
-        _btnBat80 = Ui.GButton("⚖", "80% Diario", 44);
+        _btnBat80 = Ui.GButton(Icons.Heart, "80% Diario", 44, 15);
         _btnBat80.Click += async (_, _) => await QuickSetBatteryLimit(80);
         Grid.SetColumn(_btnBat80, 1); gridBat.Children.Add(_btnBat80);
 
-        _btnBat100 = Ui.GButton("✈", "100% Total", 44);
+        _btnBat100 = Ui.GButton(Icons.Airplane, "100% Total", 44, 15);
         _btnBat100.Click += async (_, _) => await QuickSetBatteryLimit(100);
         Grid.SetColumn(_btnBat100, 2); gridBat.Children.Add(_btnBat100);
 
@@ -186,15 +186,20 @@ public sealed class MainWindow : Window
         var secKeyboard = Ui.V(7);
         var kbHeaderRight = new Button
         {
-            Content = "⚙ Configuración",
+            Content = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                Spacing = 4,
+                Children = { Icons.Create(Icons.Settings, 11, Ui.Text), new TextBlock { Text = "Ajustes", FontSize = 10.5, VerticalAlignment = VerticalAlignment.Center } }
+            },
             FontSize = 10.5,
-            Padding = new Thickness(8, 3),
+            Padding = new Thickness(7, 3),
             MinHeight = 24,
             Background = Ui.Elevated,
             BorderBrush = Ui.Border
         };
         kbHeaderRight.Click += (_, _) => OpenProfiles();
-        secKeyboard.Children.Add(Ui.SectionHeader("⌨", "Teclado del portátil", kbHeaderRight));
+        secKeyboard.Children.Add(Ui.SectionHeader(Icons.Keyboard, "Teclado del portátil", kbHeaderRight));
 
         var kbRow = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto,Auto,Auto"), ColumnSpacing = 6 };
         
