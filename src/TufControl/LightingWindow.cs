@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Shapes;
 using Avalonia.Layout;
 using Avalonia.Media;
 
@@ -133,8 +132,8 @@ internal sealed class LightingWindow : Window
 
         Content = new ScrollViewer { Content = outer };
 
-        // Set initial color (Cian ASUS: 00E5FF)
-        SetHexColor("00E5FF");
+        var curSettings = SettingsStore.Load();
+        SetHexColor(!string.IsNullOrEmpty(curSettings.LastKeyboardColor) ? curSettings.LastKeyboardColor : "00E5FF");
     }
 
     private static Grid CreateSliderRow(string name, Slider slider, TextBlock label, string accentHex)
@@ -217,7 +216,18 @@ internal sealed class LightingWindow : Window
             var color = (_colorHex.Text ?? "").Trim().TrimStart('#');
             if (color.Length != 6) color = "00E5FF";
             var result = await Hardware.SetLighting(mode, color);
-            _status.Text = result.Ok ? $"Aura: {mode} (#{color}) aplicado correctamente." : "Error: " + result.Message;
+            if (result.Ok)
+            {
+                var cur = SettingsStore.Load();
+                cur.LastKeyboardColor = color;
+                cur.LastKeyboardMode = mode;
+                SettingsStore.Save(cur);
+                _status.Text = $"Aura: {mode} (#{color}) aplicado correctamente.";
+            }
+            else
+            {
+                _status.Text = "Error: " + result.Message;
+            }
         }
         catch (Exception ex) { _status.Text = "Error: " + ex.Message; }
         finally { _working = false; _effectApply.IsEnabled = true; }
