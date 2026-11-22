@@ -198,6 +198,14 @@ internal static class Hardware
     public static Task<CommandResult> SetProfile(string profile)
         => RunAsync("asusctl", 20000, "profile", "set", profile);
 
+    public static async Task<CommandResult> SetScreenRefreshRate(int hz)
+    {
+        var r = await RunAsync("kscreen-doctor", 5000, $"output.eDP-1.mode.1920x1080@{hz}");
+        if (!r.Ok)
+            r = await RunAsync("kscreen-doctor", 5000, $"output.1.mode.1920x1080@{hz}");
+        return r;
+    }
+
     public static CommandResult FanSupport()
         => new(Capabilities.FanCurves, Capabilities.FanCurves ? "Interfaz FanCurves disponible" :
             "El FX506HC no expone xyz.ljones.FanCurves a través de asusctl.", "");

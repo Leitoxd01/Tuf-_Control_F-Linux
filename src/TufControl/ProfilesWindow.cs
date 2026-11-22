@@ -14,7 +14,9 @@ internal sealed class ProfilesWindow : Window
     private readonly ComboBox _gaming;
     private readonly CheckBox _auto = new() { Content = "Cambiar de perfil al conectar/desconectar el cargador" };
     private readonly CheckBox _applyStart = new() { Content = "Aplicar el perfil correspondiente al abrir la aplicación" };
-    private readonly CheckBox _autostart = new() { Content = "Abrir TUF Control al iniciar KDE" };
+    private readonly CheckBox _autostart = new() { Content = "Iniciar TUF Control al arrancar KDE" };
+    private readonly CheckBox _minimizeToTray = new() { Content = "Minimizar a la bandeja del sistema (System Tray) al cerrar" };
+    private readonly CheckBox _autoRefresh = new() { Content = "Ajustar pantalla automáticamente (60 Hz con batería / 144 Hz con cargador)" };
     private readonly ComboBox _ac = new() { ItemsSource = new[] { "Fresco", "Equilibrado", "Gaming" }, Width = 144 };
     private readonly ComboBox _battery = new() { ItemsSource = new[] { "Fresco", "Equilibrado", "Gaming" }, Width = 144 };
     private readonly TextBlock _status = Ui.Secondary("Los perfiles no modifican GPU, ventiladores ni límites PL1/PL2.");
@@ -25,7 +27,7 @@ internal sealed class ProfilesWindow : Window
         _draft = JsonSerializer.Deserialize<AppSettings>(JsonSerializer.Serialize(current)) ?? new AppSettings();
         _onSave = onSave;
         Title = "TUF Control · Perfiles y automatización";
-        Background = Ui.Bg; Width = 560; Height = 720; MinWidth = 480;
+        Background = Ui.Bg; Width = 560; Height = 760; MinWidth = 480;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         var outer = Ui.V(13); outer.Margin = new Thickness(16);
         outer.Children.Add(Ui.Heading("PERFILES PERSONALIZADOS"));
@@ -37,13 +39,19 @@ internal sealed class ProfilesWindow : Window
         _gaming = CreateEditor(outer, "Gaming · juegos y tareas exigentes", _draft.Gaming, choices);
 
         var automation = Ui.V(11);
-        automation.Children.Add(Ui.Heading("AUTOMATIZACIÓN POR ENERGÍA"));
+        automation.Children.Add(Ui.Heading("AUTOMATIZACIÓN Y SISTEMA"));
         _auto.IsChecked = _draft.AutoByPower;
         _applyStart.IsChecked = _draft.AutoAtStart;
         _autostart.IsChecked = _draft.StartWithDesktop;
+        _minimizeToTray.IsChecked = _draft.MinimizeToTray;
+        _autoRefresh.IsChecked = _draft.AutoRefreshRate;
+
         automation.Children.Add(_auto);
         automation.Children.Add(_applyStart);
+        automation.Children.Add(_autoRefresh);
         automation.Children.Add(_autostart);
+        automation.Children.Add(_minimizeToTray);
+
         var grid = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto"), RowDefinitions = new RowDefinitions("Auto,Auto"), RowSpacing = 8 };
         grid.Children.Add(Ui.Label("Con cargador:", 12));
         Grid.SetColumn(_ac, 1); grid.Children.Add(_ac);
@@ -52,7 +60,7 @@ internal sealed class ProfilesWindow : Window
         automation.Children.Add(grid);
         _ac.SelectedItem = _draft.AcPreset;
         _battery.SelectedItem = _draft.BatteryPreset;
-        automation.Children.Add(Ui.Secondary("Funciona mientras TUF Control esté abierto y solo modifica perfiles ASUS. Nunca cambia Intel Turbo Boost ni GPU."));
+        automation.Children.Add(Ui.Secondary("Funciona mientras TUF Control esté abierto o en la bandeja del sistema."));
         outer.Children.Add(Ui.Card(automation));
         _status.TextWrapping = Avalonia.Media.TextWrapping.Wrap;
         outer.Children.Add(_status);
@@ -83,6 +91,8 @@ internal sealed class ProfilesWindow : Window
             _draft.AutoByPower = _auto.IsChecked == true;
             _draft.AutoAtStart = _applyStart.IsChecked == true;
             _draft.StartWithDesktop = _autostart.IsChecked == true;
+            _draft.MinimizeToTray = _minimizeToTray.IsChecked == true;
+            _draft.AutoRefreshRate = _autoRefresh.IsChecked == true;
             _draft.AcPreset = _ac.SelectedItem as string ?? "Gaming";
             _draft.BatteryPreset = _battery.SelectedItem as string ?? "Fresco";
             SettingsStore.SetAutostart(_draft.StartWithDesktop);

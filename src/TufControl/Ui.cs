@@ -18,11 +18,22 @@ internal static class Ui
     public static readonly IBrush Border = Brush("#37475B");
     public static readonly IBrush Green = Brush("#59D5A0");
     public static readonly IBrush Warning = Brush("#FFBE77");
+    public static readonly IBrush Hot = Brush("#FF5555");
+    public static readonly IBrush Cold = Brush("#59D5A0");
 
     public static IBrush Brush(string hex) => new SolidColorBrush(Color.Parse(hex));
     public static TextBlock Label(string text, double size = 12, IBrush? color = null, bool bold = false) =>
         new() { Text = text, FontSize = size, Foreground = color ?? Text,
             FontWeight = bold ? FontWeight.Bold : FontWeight.Normal, TextWrapping = TextWrapping.Wrap };
+
+    public static IBrush TempBrush(double? temp)
+    {
+        if (!temp.HasValue) return Accent;
+        if (temp.Value < 55) return Cold;
+        if (temp.Value < 75) return Accent;
+        if (temp.Value < 85) return Warning;
+        return Hot;
+    }
 
     public static Border Card(Control child, Thickness? padding = null) => new()
     {

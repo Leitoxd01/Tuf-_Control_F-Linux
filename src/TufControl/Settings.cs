@@ -18,6 +18,11 @@ internal sealed class AppSettings
     public string AcPreset { get; set; } = "Gaming";
     public string BatteryPreset { get; set; } = "Fresco";
     public bool StartWithDesktop { get; set; } = false;
+    public bool MinimizeToTray { get; set; } = true;
+    public bool AutoRefreshRate { get; set; } = false;
+    public string LastKeyboardColor { get; set; } = "00D4FF";
+    public string LastKeyboardMode { get; set; } = "Static";
+    public string LastBrightness { get; set; } = "med";
 
     public Preset GetPreset(string name) => name switch
     {
