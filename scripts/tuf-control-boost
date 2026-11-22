@@ -1,0 +1,102 @@
+#!/usr/bin/env bash
+# TUF Control: gestor sencillo y persistente del estado de Intel Turbo Boost.
+set -euo pipefail
+
+readonly CONFIG_DIR='/etc/tuf-control'
+readonly CONFIG_FILE="${CONFIG_DIR}/boost.state"
+readonly INTEL_CONTROL='/sys/devices/system/cpu/intel_pstate/no_turbo'
+readonly CPUFREQ_CONTROL='/sys/devices/system/cpu/cpufreq/boost'
+
+usage() {
+    printf 'Uso: %s {status|get|saved|set on|set off|apply}\n' "$0" >&2
+    exit 2
+}
+
+require_root() {
+    if (( EUID != 0 )); then
+        printf 'Error: se necesitan permisos de administrador (sudo o pkexec).\n' >&2
+        exit 1
+    fi
+}
+
+supported() {
+    [[ -e "$INTEL_CONTROL" || -e "$CPUFREQ_CONTROL" ]]
+}
+
+read_current() {
+    local value
+    if [[ -r "$INTEL_CONTROL" ]]; then
+        value=$(<"$INTEL_CONTROL")
+        case "$value" in 1) printf 'off\n';; 0) printf 'on\n';; *) return 1;; esac
+    elif [[ -r "$CPUFREQ_CONTROL" ]]; then
+        value=$(<"$CPUFREQ_CONTROL")
+        case "$value" in 0) printf 'off\n';; 1) printf 'on\n';; *) return 1;; esac
+    else
+        return 1
+    fi
+}
+
+read_saved() {
+    local state
+    [[ -f "$CONFIG_FILE" ]] || { printf 'Preferencia no configurada: %s\n' "$CONFIG_FILE" >&2; return 1; }
+    state=$(<"$CONFIG_FILE")
+    case "$state" in on|off) printf '%s\n' "$state";; *) printf 'Estado guardado inválido.\n' >&2; return 1;; esac
+}
+
+write_kernel() {
+    local state=$1 value
+    case "$state" in on|off) :;; *) usage;; esac
+    if [[ -e "$INTEL_CONTROL" ]]; then
+        [[ "$state" == 'off' ]] && value=1 || value=0
+        printf '%s\n' "$value" > "$INTEL_CONTROL"
+    elif [[ -e "$CPUFREQ_CONTROL" ]]; then
+        [[ "$state" == 'off' ]] && value=0 || value=1
+        printf '%s\n' "$value" > "$CPUFREQ_CONTROL"
+    else
+        printf 'No está disponible intel_pstate/no_turbo ni cpufreq/boost.\n' >&2
+        exit 1
+    fi
+}
+
+save_state() {
+    local state=$1 tmp
+    install -d -m 755 "$CONFIG_DIR"
+    tmp=$(mktemp "${CONFIG_DIR}/.boost.state.XXXXXXXX")
+    chmod 644 "$tmp"
+    printf '%s\n' "$state" > "$tmp"
+    mv -f -- "$tmp" "$CONFIG_FILE"
+}
+
+main() {
+    local command=${1:-} state
+    case "$command" in
+        get) read_current;;
+        saved) read_saved;;
+        status)
+            printf 'Turbo Boost actual: %s\n' "$(read_current)"
+            if [[ -f "$CONFIG_FILE" ]]; then
+                printf 'Preferencia guardada: %s\n' "$(read_saved)"
+            else
+                printf 'Preferencia guardada: sin configurar\n'
+            fi
+            ;;
+        set)
+            [[ $# == 2 ]] || usage
+            state=$2
+            case "$state" in on|off) :;; *) usage;; esac
+            require_root
+            write_kernel "$state"
+            save_state "$state"
+            printf 'Turbo Boost: %s. Preferencia guardada para próximos arranques.\n' "$state"
+            ;;
+        apply)
+            [[ $# == 1 ]] || usage
+            require_root
+            state=$(read_saved)
+            write_kernel "$state"
+            printf 'Preferencia restaurada: Turbo Boost %s.\n' "$state"
+            ;;
+        *) usage;;
+    esac
+}
+main "$@"

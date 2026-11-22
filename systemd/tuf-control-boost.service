@@ -1,0 +1,11 @@
+[Unit]
+Description=Restaurar la preferencia de Intel Turbo Boost de TUF Control
+ConditionPathExists=/etc/tuf-control/boost.state
+After=systemd-udev-trigger.service tuned.service tuned-ppd.service power-profiles-daemon.service asusd.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/tuf-control-boost apply
+
+[Install]
+WantedBy=multi-user.target
